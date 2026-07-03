@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
-import { Select } from 'src/ui/select/Select';
+import { Select } from 'src/ui/select';
 import { RadioGroup } from 'src/ui/radio-group';
 import { Text } from 'src/ui/text';
+import { Separator } from 'src/ui/separator';
 
 import {
 	defaultArticleState,
@@ -15,27 +16,29 @@ import {
 	fontSizeOptions,
 } from 'src/constants/articleProps';
 
+import type { ArticleStateType } from 'src/constants/articleProps';
+
 import styles from './ArticleParamsForm.module.scss';
-import { Separator } from 'src/ui/separator';
 
 type Props = {
-	onApply: (state: typeof defaultArticleState) => void;
+	onApply: (state: ArticleStateType) => void;
 };
 
 export const ArticleParamsForm = ({ onApply }: Props) => {
-	const [isOpen, setIsOpen] = useState(false);
+	const [isArticleSettingsOpen, setIsArticleSettingsOpen] = useState(false);
 	const [formState, setFormState] = useState(defaultArticleState);
-	const toggleOpen = () => setIsOpen((prev) => !prev);
+	const toggleOpen = () => setIsArticleSettingsOpen((prev) => !prev);
 	const wrapperRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		if (!isArticleSettingsOpen) return;
+
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
-				isOpen &&
 				wrapperRef.current &&
 				!wrapperRef.current.contains(event.target as Node)
 			) {
-				setIsOpen(false);
+				setIsArticleSettingsOpen(false);
 			}
 		};
 
@@ -44,12 +47,12 @@ export const ArticleParamsForm = ({ onApply }: Props) => {
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [isOpen]);
+	}, [isArticleSettingsOpen]);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		onApply(formState);
-		setIsOpen(false);
+		setIsArticleSettingsOpen(false);
 	};
 
 	const handleReset = () => {
@@ -59,93 +62,89 @@ export const ArticleParamsForm = ({ onApply }: Props) => {
 
 	return (
 		<div ref={wrapperRef}>
-			<ArrowButton isOpen={isOpen} onClick={toggleOpen} />
+			<ArrowButton isOpen={isArticleSettingsOpen} onClick={toggleOpen} />
 
-			{isOpen && (
-				<aside
-					className={clsx(styles.container, {
-						[styles.container_open]: isOpen,
-					})}>
-					<form className={styles.form} onSubmit={handleSubmit}>
-						<Text as='h2' size={31} weight={800} uppercase>
-							Задайте параметры
-						</Text>
-						<Select
-							title='Шрифт'
-							selected={formState.fontFamilyOption}
-							options={fontFamilyOptions}
-							onChange={(value) =>
-								setFormState((prev) => ({
-									...prev,
-									fontFamilyOption: value,
-								}))
-							}
-						/>
+			<aside
+				className={clsx(styles.container, {
+					[styles.container_open]: isArticleSettingsOpen,
+				})}>
+				<form
+					className={styles.form}
+					onSubmit={handleSubmit}
+					onReset={handleReset}>
+					<Text as='h2' size={31} weight={800} uppercase>
+						Задайте параметры
+					</Text>
+					<Select
+						title='Шрифт'
+						selected={formState.fontFamilyOption}
+						options={fontFamilyOptions}
+						onChange={(value) =>
+							setFormState((prev) => ({
+								...prev,
+								fontFamilyOption: value,
+							}))
+						}
+					/>
 
-						<RadioGroup
-							name='fontSizeOption'
-							title='Размер шрифта'
-							selected={formState.fontSizeOption}
-							options={fontSizeOptions}
-							onChange={(value) =>
-								setFormState((prev) => ({
-									...prev,
-									fontSizeOption: value,
-								}))
-							}
-						/>
+					<RadioGroup
+						name='fontSizeOption'
+						title='Размер шрифта'
+						selected={formState.fontSizeOption}
+						options={fontSizeOptions}
+						onChange={(value) =>
+							setFormState((prev) => ({
+								...prev,
+								fontSizeOption: value,
+							}))
+						}
+					/>
 
-						<Select
-							title='Цвет шрифта'
-							selected={formState.fontColor}
-							options={fontColors}
-							onChange={(value) =>
-								setFormState((prev) => ({
-									...prev,
-									fontColor: value,
-								}))
-							}
-						/>
+					<Select
+						title='Цвет шрифта'
+						selected={formState.fontColor}
+						options={fontColors}
+						onChange={(value) =>
+							setFormState((prev) => ({
+								...prev,
+								fontColor: value,
+							}))
+						}
+					/>
 
-						<Separator />
+					<Separator />
 
-						<Select
-							title='Цвет фона'
-							options={backgroundColors}
-							selected={formState.backgroundColor}
-							onChange={(value) =>
-								setFormState((prev) => ({
-									...prev,
-									backgroundColor: value,
-								}))
-							}
-						/>
+					<Select
+						title='Цвет фона'
+						options={backgroundColors}
+						selected={formState.backgroundColor}
+						onChange={(value) =>
+							setFormState((prev) => ({
+								...prev,
+								backgroundColor: value,
+							}))
+						}
+					/>
 
-						<Select
-							title='Ширина контента'
-							options={contentWidthArr}
-							selected={formState.contentWidth}
-							onChange={(value) =>
-								setFormState((prev) => ({
-									...prev,
-									contentWidth: value,
-								}))
-							}
-						/>
+					<Select
+						title='Ширина контента'
+						options={contentWidthArr}
+						selected={formState.contentWidth}
+						onChange={(value) =>
+							setFormState((prev) => ({
+								...prev,
+								contentWidth: value,
+							}))
+						}
+					/>
 
-						<div className={styles.bottomContainer}>
-							<Button
-								title='Сбросить'
-								htmlType='reset'
-								type='clear'
-								onClick={handleReset}
-							/>
+					<div className={styles.bottomContainer}>
+						<Button title='Сбросить' htmlType='reset' type='clear' />
 
-							<Button title='Применить' htmlType='submit' type='apply' />
-						</div>
-					</form>
-				</aside>
-			)}
+						<Button title='Применить' htmlType='submit' type='apply' />
+					</div>
+				</form>
+			</aside>
 		</div>
 	);
 };
